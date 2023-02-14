@@ -1,0 +1,76 @@
+# creating the dataframe
+
+columns=["sr_no","name"]
+Data=[(1,"Deelip Kumar"),(2,"Manish kumar"),(3,"Ashwani Kumar")]
+
+df=spark.createDataFrame(data=Data,schema=columns)
+df.printSchema()
+# creating UDF
+1. create a python function
+def convertCase(str):
+    resStr=""
+    arr = str.split(" ")
+    for x in arr:
+       resStr= resStr + x[0:1].upper() + x[1:len(x)] + " "
+    return resStr
+2. create udf from python funtion
+createUDF= udf(lambda x: convertCase(x),StringType())
+
+udf during selecting any column
+df.select(col("sr_no"),createUDF(col("name"))
+
+# creating another data frame
+simpleData = (("James", "Sales", 3000), \
+    ("Michael", "Sales", 4600),  \
+    ("Robert", "Sales", 4100),   \
+    ("Maria", "Finance", 3000),  \
+    ("James", "Sales", 3000),    \
+    ("Scott", "Finance", 3300),  \
+    ("Jen", "Finance", 3900),    \
+    ("Jeff", "Marketing", 3000), \
+    ("Kumar", "Marketing", 2000),\
+    ("Saif", "Sales", 4100) \
+  )
+ 
+columns= ["employee_name", "department", "salary"]
+df = spark.createDataFrame(data = simpleData, schema = columns)
+df.printSchema()
+# applying udf to department
+df=df.select(col("employee_name"),convertUDF(col("department")).alias("Department"),col("Salary"))
++-------------+-------------+------+
+|employee_name|   Department|Salary|
++-------------+-------------+------+
+|        James|    Sales    |  3000|
+|      Michael|    Sales    |  4600|
+|       Robert|    Sales    |  4100|
+|        Maria|  Finance    |  3000|
+|        James|    Sales    |  3000|
+|        Scott|  Finance    |  3300|
+|          Jen|  Finance    |  3900|
+|         Jeff|Marketing    |  3000|
+|        Kumar|Marketing    |  2000|
+|         Saif|    Sales    |  4100|
++-------------+-------------+------+
+
+#Applying udf with withcolumn function
+
+def upperCase(str):
+    return str.upper()
+
+convUDF=udf(lambda x : upperCase(x))
+df1=df.withColumn("NEW_Name",convUDF(col("employee_Name")))
+df1.show()
++-------------+----------+------+--------+
+|employee_name|department|salary|NEW_Name|
++-------------+----------+------+--------+
+|        James|     Sales|  3000|   JAMES|
+|      Michael|     Sales|  4600| MICHAEL|
+|       Robert|     Sales|  4100|  ROBERT|
+|        Maria|   Finance|  3000|   MARIA|
+|        James|     Sales|  3000|   JAMES|
+|        Scott|   Finance|  3300|   SCOTT|
+|          Jen|   Finance|  3900|     JEN|
+|         Jeff| Marketing|  3000|    JEFF|
+|        Kumar| Marketing|  2000|   KUMAR|
+|         Saif|     Sales|  4100|    SAIF|
++-------------+----------+------+--------+
